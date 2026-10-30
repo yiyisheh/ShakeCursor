@@ -54,6 +54,10 @@ ShakeCursor 暂时没有代码签名。点 **更多信息 → 仍要运行** 即
 **怎么卸载？**
 在 **设置 → 应用** 里卸载 ShakeCursor。如果用的是便携版，在托盘菜单里选 **退出**，然后删掉文件即可。
 
+## 代码签名
+
+免费代码签名由 [SignPath.io](https://about.signpath.io/) 提供，证书由 [SignPath Foundation](https://signpath.org/) 签发。详见[代码签名政策](CODE_SIGNING.md)。
+
 ## 许可证
 
 [MIT](LICENSE) © yiyisheh

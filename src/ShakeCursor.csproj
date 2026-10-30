@@ -19,6 +19,8 @@
     <Company>yiyisheh</Company>
     <Copyright>Copyright © 2026 yiyisheh</Copyright>
     <Description>Shake the mouse to make the cursor bigger, like macOS.</Description>
+    <!-- Keep ProductVersion a plain version: code signing checks it against the release version -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
   </PropertyGroup>

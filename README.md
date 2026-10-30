@@ -54,6 +54,10 @@ In `%APPDATA%\ShakeCursor\config.json`.
 **How do I uninstall it?**
 Go to **Settings → Apps** and uninstall ShakeCursor. If you use the portable version, choose **Exit** and delete the file.
 
+## Code signing
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/). See the [code signing policy](CODE_SIGNING.md).
+
 ## License
 
 [MIT](LICENSE) © yiyisheh

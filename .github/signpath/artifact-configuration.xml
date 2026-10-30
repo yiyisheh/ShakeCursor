@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Artifact configuration for the SignPath project (paste it into SignPath).
+  The GitHub artifact is a zip with ShakeCursor.exe and ShakeCursor.msi. The portable exe is signed,
+  and the MSI is deep-signed: the exe inside it first, then the MSI itself.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="ShakeCursor.exe" product-name="ShakeCursor" product-version="${version}">
+      <authenticode-sign />
+    </pe-file>
+    <msi-file path="ShakeCursor.msi">
+      <pe-file path="ShakeCursor.exe" product-name="ShakeCursor" product-version="${version}">
+        <authenticode-sign />
+      </pe-file>
+      <authenticode-sign />
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

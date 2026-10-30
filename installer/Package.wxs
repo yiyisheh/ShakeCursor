@@ -1,0 +1,61 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!-- Never change the UpgradeCode: MSI uses it to recognise newer versions of the same product -->
+  <Package Name="ShakeCursor" Manufacturer="yiyisheh" Version="$(Version)"
+           UpgradeCode="B7912C08-B64E-4FB2-ACF1-D36E9811EE38" Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="..\src\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/yiyisheh/ShakeCursor" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/yiyisheh/ShakeCursor/issues" />
+
+    <!-- .NET Framework 4.8 ships with Windows 10 1903 and later (Release >= 528040) -->
+    <Property Id="NETFX4RELEASE">
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="raw" Bitness="always64" />
+    </Property>
+    <Launch Condition="Installed OR NETFX4RELEASE &gt;= &quot;#528040&quot;"
+            Message="ShakeCursor requires .NET Framework 4.8. Please install it from https://dotnet.microsoft.com/download/dotnet-framework/net48 and run this setup again." />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="ShakeCursor" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main">
+      <Component Directory="INSTALLFOLDER">
+        <File Id="ShakeCursorExe" Source="$(ShakeCursor.TargetPath)" KeyPath="yes" />
+        <!-- Start at sign-in for every user; each user can opt out in Settings (stored in their own HKCU) -->
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="ShakeCursor"
+                       Type="string" Value="&quot;[#ShakeCursorExe]&quot; --autostart" />
+      </Component>
+      <!-- A non-advertised shortcut needs its own component with a registry KeyPath; HKMU means HKLM in a per-machine install -->
+      <Component Directory="ProgramMenuFolder">
+        <Shortcut Id="StartMenuShortcut" Name="ShakeCursor" Target="[INSTALLFOLDER]ShakeCursor.exe"
+                  Description="Shake the mouse to make the cursor bigger" WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKMU" Key="Software\yiyisheh\ShakeCursor" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </Feature>
+
+    <!-- Ask a running instance to exit before install/upgrade/uninstall (on WM_CLOSE it restores the cursor and quits) -->
+    <util:CloseApplication Id="CloseShakeCursor" Target="ShakeCursor.exe"
+                           CloseMessage="yes" ElevatedCloseMessage="yes" RebootPrompt="no" TerminateProcess="1" />
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <!-- Launch from the finish page runs in the UI process, so the app does not start elevated -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch ShakeCursor" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#ShakeCursorExe]" />
+    <CustomAction Id="LaunchApplication" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixShellExec" Impersonate="yes" />
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
+  </Package>
+</Wix>

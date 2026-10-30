@@ -1,0 +1,17 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>ShakeCursor</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>Version=$(Version)</DefineConstants>
+    <!-- ICE57 false positive: the package is always per-machine (ALLUSERS=1), so the Start menu shortcut and the HKMU key are both machine-wide -->
+    <SuppressIces>ICE57</SuppressIces>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\ShakeCursor.csproj" />
+  </ItemGroup>
+</Project>

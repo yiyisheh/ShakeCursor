@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Replays synthetic mouse traces through ShakeDetector. Run it with "dotnet run" in this folder. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+    <Compile Include="..\src\ShakeDetector.cs;..\src\Config.cs;..\src\Native.cs;..\src\Polyfills.cs" />
+  </ItemGroup>
+</Project>

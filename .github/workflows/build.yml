@@ -88,5 +88,8 @@ jobs:
         run: |
           cd dist
           sha256sum ShakeCursor.msi ShakeCursor.exe > SHA256SUMS.txt
+          # Release notes come from the annotated tag message
+          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" --jq .object.sha)
+          gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" --jq .message > notes.md
           gh release create "$GITHUB_REF_NAME" ShakeCursor.msi ShakeCursor.exe SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" --title "ShakeCursor $VERSION" --notes-from-tag
+            --repo "$GITHUB_REPOSITORY" --title "ShakeCursor $VERSION" --notes-file notes.md

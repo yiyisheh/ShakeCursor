@@ -5,7 +5,8 @@ namespace ShakeCursor;
 ///
 /// The path is cut into strokes: turning back (more than ~107°) ends the current stroke.
 /// A stroke that is long, straight and fast enough, and opposite to the previous one, is a swing. MinReversals swings within WindowMs mean shaking;
-/// each further swing raises Level. ReleaseDelayMs after the last swing, Level falls linearly to 0 over ShrinkMs.
+/// from then on Level grows to 1 on its own within AutoGrowMs, and each further swing speeds that up, so a shake always ends at full size.
+/// ReleaseDelayMs after the later of the last swing and reaching full size, Level falls linearly to 0 over ShrinkMs; a swing while shrinking grows it back to full.
 /// Straightness (net distance / path >= 0.7) rules out fast circles. Nothing counts while a mouse button is down (dragging, selecting, games).
 ///
 /// Threading: OnMove runs on the hook thread and Tick on the UI thread, so state is locked.
@@ -15,6 +16,7 @@ sealed class ShakeDetector
     const double TurnCos = -0.3;          // turning more than ~107° ends a stroke
     const double MinStraightness = 0.7;
     const double MaxGapMs = 120;          // a longer pause means the hand stopped; start over
+    const double AutoGrowMs = 300;        // once triggered, time to grow from 0 to full size without further swings
 
     readonly object gate = new();
     readonly Queue<double> swingTimes = new();   // end times of recent swings
@@ -24,7 +26,8 @@ sealed class ShakeDetector
     double lastX, lastY, lastT;
     double strokeDx, strokeDy, strokeLen, strokeStartT;
     double lastSwingDx, lastSwingDy;
-    double level, lastSwingT;
+    double level, holdFromT;
+    bool growing;
 
     public ShakeDetector(Config config) => this.config = config;
 
@@ -91,8 +94,19 @@ sealed class ShakeDetector
     {
         lock (gate)
         {
-            if (level > 0 && t - lastSwingT > config.ReleaseDelayMs)
+            if (growing)
+            {
+                level = Math.Min(1, level + dtMs / AutoGrowMs);
+                if (level >= 1)
+                {
+                    growing = false;
+                    holdFromT = Math.Max(holdFromT, t);
+                }
+            }
+            else if (level > 0 && t - holdFromT > config.ReleaseDelayMs)
+            {
                 level = Math.Max(0, level - dtMs / config.ShrinkMs);
+            }
             return level;
         }
     }
@@ -127,7 +141,8 @@ sealed class ShakeDetector
 
         var wasIdle = level <= 0;
         level = Math.Min(1, level + config.GrowPerSwing * Math.Min(2, speed / config.MinSpeed));
-        lastSwingT = endT;
+        holdFromT = endT;
+        growing = true;
         return wasIdle;
     }
 

@@ -19,6 +19,7 @@ Check("fast circles, r=100, 300ms per turn",
     false, t => (100 * Math.Cos(t / 300 * 2 * Math.PI), 100 * Math.Sin(t / 300 * 2 * Math.PI)), 1500);
 Check("one quick trip between two buttons", false, t => (t < 250 ? 200 * Triangle(t, 100) : 200 * Triangle(250, 100), 0), 800);
 Check("small tremor ±15px", false, t => (15 * Triangle(t, 40), 0), 1500);
+CheckFullGrowth();
 
 Console.WriteLine(failures == 0 ? "All passed" : $"{failures} failed");
 return failures;
@@ -43,6 +44,33 @@ void Check(string name, bool expectShake, Func<double, (double X, double Y)> pat
         failures++;
     var result = triggeredAt >= 0 ? $"triggered at {triggeredAt:0} ms" : "not triggered";
     Console.WriteLine($"{(ok ? "PASS" : "FAIL")}  {name,-42} {result,-22} max level {maxLevel:0.00}");
+}
+
+// Stop moving the moment a shake is detected: the cursor must still grow all the way to full size before it shrinks back.
+void CheckFullGrowth()
+{
+    var detector = new ShakeDetector(new Config());
+    const double step = 8;
+    double t = 0, levelAtTrigger = 0;
+    for (; t <= 1200; t += step)
+    {
+        var triggered = detector.OnMove(120 * Triangle(t, 100), 0, t);
+        levelAtTrigger = detector.Tick(t, step);
+        if (triggered)
+            break;
+    }
+
+    double maxLevel = levelAtTrigger, endLevel = levelAtTrigger;
+    for (var end = t + 2000; t <= end; t += step)
+    {
+        endLevel = detector.Tick(t, step);
+        maxLevel = Math.Max(maxLevel, endLevel);
+    }
+
+    var ok = levelAtTrigger < 1 && maxLevel >= 1 && endLevel <= 0;
+    if (!ok)
+        failures++;
+    Console.WriteLine($"{(ok ? "PASS" : "FAIL")}  {"stop right after triggering",-42} {$"level {levelAtTrigger:0.00} at trigger",-22} max level {maxLevel:0.00}, end {endLevel:0.00}");
 }
 
 static double Triangle(double t, double halfPeriod)
